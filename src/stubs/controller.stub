@@ -1,0 +1,133 @@
+<?php
+
+namespace {{ controllerNamespace }};
+
+use {{ resourceInclude }};
+use {{ modelInclude }};
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+/**
+ * @tags {{ modelName }}
+ */
+class {{ controllerName }}
+{
+    /**
+     * Get All {{ modelPlural }}
+     */
+    public function index(Request $request): ResourceCollection
+    {
+        Gate::authorize('viewAny', {{ modelName }}::class);
+
+        $request->validate([
+            'sort_by' => ['nullable', 'string'],
+            'order' => ['nullable', 'string', 'in:asc,desc'],
+            'paginate' => ['nullable', 'boolean'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $query = {{ modelName }}::query();
+
+        {{ modelPluralVariableName }} = $request->boolean('paginate', true)
+            ? $query->paginate($request->per_page ?? 15)
+            : $query->get();
+
+        return {{ modelName }}Resource::collection({{ modelPluralVariableName }});
+    }
+
+    /**
+     * Store {{ modelName }}.
+     */
+    public function store(Request $request): {{ modelName }}Resource
+    {
+        Gate::authorize('create', {{ modelName }}::class);
+
+        $validatedPayload = $request->validate([]);
+
+        {{ modelVariableName }} = new {{ modelName }}($validatedPayload);
+
+        if (!{{ modelVariableName }}->save()) {
+            throw new BadRequestHttpException(__(':resource Could not be created', ['resource' => __('{{ modelName }}')]));
+        }
+
+        return {{ modelName }}Resource::make({{ modelVariableName }});
+    }
+
+    /**
+     * Get {{ modelName }}
+     */
+    public function show(int $id): {{ modelName }}Resource
+    {
+        Gate::authorize('view', {{ modelName }}::class);
+
+        {{ modelVariableName }} = {{ modelName }}::find($id);
+
+        if (!{{ modelVariableName }}) {
+            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+        }
+
+        return new {{ modelName }}Resource({{ modelVariableName }});
+    }
+
+    /**
+     * Update {{ modelName }}
+     */
+    public function update(Request $request, int $id): {{ modelName }}Resource
+    {
+        Gate::authorize('update', {{ modelName }}::class);
+
+        $validatedPayload = $request->validate([]);
+
+        {{ modelVariableName }} = {{ modelName }}::findOrFail($id);
+
+        {{ modelVariableName }}->fill($validatedPayload);
+
+        if (!{{ modelVariableName }}->save()) {
+            throw new BadRequestHttpException(__(':resource Could not be updated', ['resource' => __('{{ modelName }}')]));
+        }
+
+        return {{ modelName }}Resource::make({{ modelVariableName }});
+    }
+
+    /**
+     * Delete {{ modelName }}
+     */
+    public function destroy(int $id): Response
+    {
+        Gate::authorize('delete', {{ modelName }}::class);
+
+        $affectedRowsCount = {{ modelName }}::destroy($id);
+
+        if ($affectedRowsCount === 0) {
+            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+        }
+
+        return response()->noContent();
+    }
+
+    /**
+     * Bulk Delete {{ modelName }}
+     */
+    public function destroyMany(Request $request): Response
+    {
+        Gate::authorize('delete', {{ modelName }}::class);
+
+        $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['required', 'integer', Rule::exists({{ modelName }}::class, 'id')],
+        ]);
+
+        $affectedRowsCount = {{ modelName }}::destroy($request->ids);
+
+        if ($affectedRowsCount === 0) {
+            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+        }
+
+        return response()->noContent();
+    }
+}

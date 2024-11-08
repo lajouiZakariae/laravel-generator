@@ -1,0 +1,47 @@
+{
+    "name": "lajouizakariae/lara-generator",
+    "description": "Laravel Custom Generator",
+    "keywords": [
+        "lajouizakariae",
+        "lara-generator"
+    ],
+    "homepage": "https://github.com/lajouizakariae/lara-generator",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Zakariae Lajoui",
+            "email": "lajoui.zakariae.1@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "laravel/framework": ">=11.0"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "LaravelGenerator\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LaravelGenerator\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "LaravelGenerator\\LaravelGeneratorServiceProvider"
+            ]
+        }
+    }
+}
