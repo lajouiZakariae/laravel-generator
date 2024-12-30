@@ -4,6 +4,8 @@ namespace {{ controllerNamespace }};
 
 use {{ resourceInclude }};
 use {{ modelInclude }};
+use {{ updateRequestInclude }};
+use {{ storeRequestInclude }};
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
@@ -43,11 +45,11 @@ class {{ controllerName }}
     /**
      * Store {{ modelName }}.
      */
-    public function store(Request $request): {{ modelName }}Resource
+    public function store({{ storeRequestName }} $request): {{ modelName }}Resource
     {
         Gate::authorize('create', {{ modelName }}::class);
 
-        $validatedPayload = $request->validate([]);
+        $validatedPayload = $request->validated();
 
         {{ modelVariableName }} = new {{ modelName }}($validatedPayload);
 
@@ -77,11 +79,11 @@ class {{ controllerName }}
     /**
      * Update {{ modelName }}
      */
-    public function update(Request $request, int $id): {{ modelName }}Resource
+    public function update({{ updateRequestName }} $request, int $id): {{ modelName }}Resource
     {
         Gate::authorize('update', {{ modelName }}::class);
 
-        $validatedPayload = $request->validate([]);
+        $validatedPayload = $request->validated();
 
         {{ modelVariableName }} = {{ modelName }}::findOrFail($id);
 

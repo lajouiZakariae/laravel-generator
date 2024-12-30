@@ -43,6 +43,14 @@ class ControllerGenerator
 
         $tableName = str($modelName)->snake()->plural();
 
+        $updateRequestInclude = "{$rootNamespace}Http\\Requests\\{$modelName}UpdateRequest";
+
+        $storeRequestInclude = "{$rootNamespace}Http\\Requests\\{$modelName}StoreRequest";
+
+        $storeRequestName = "{$modelName}StoreRequest";
+
+        $updateRequestName = "{$modelName}UpdateRequest";
+
         $template = str()->replace(
             [
                 '{{ rootNamespace }}',
@@ -54,7 +62,11 @@ class ControllerGenerator
                 '{{ modelVariableName }}',
                 '{{ modelPluralVariableName }}',
                 '{{ resourceInclude }}',
-                '{{ tableName }}'
+                '{{ tableName }}',
+                '{{ updateRequestInclude }}',
+                '{{ storeRequestInclude }}',
+                '{{ storeRequestName }}',
+                '{{ updateRequestName }}',
             ],
             [
                 $rootNamespace,
@@ -67,6 +79,10 @@ class ControllerGenerator
                 $modelPluralVariableName,
                 $resourceInclude,
                 $tableName,
+                $updateRequestInclude,
+                $storeRequestInclude,
+                $storeRequestName,
+                $updateRequestName,
             ],
             $this->getStubFileContent()
         );
