@@ -17,6 +17,7 @@ class LaravelGeneratorServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->loadRoutesFrom(__DIR__ . "/routes.php");
     }
 
     /**
