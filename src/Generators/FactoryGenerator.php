@@ -3,7 +3,8 @@
 
 namespace LaravelGenerator\Generators;
 
-use \Illuminate\Support\File;
+use Illuminate\Support\Facades\File;
+
 
 class FactoryGenerator
 {
