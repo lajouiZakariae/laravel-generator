@@ -2,7 +2,7 @@
 
 namespace LaravelGenerator\Generators;
 
-use File;
+use \Illuminate\Support\File;
 
 class PolicyGenerator
 {
