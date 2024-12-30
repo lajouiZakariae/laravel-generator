@@ -118,7 +118,7 @@ class ApiGeneratorController
         $successMessages = collect([]);
 
         // generate factory
-        $outputPath = $this->factoryGenerator->generate($modelName);
+        $outputPath = $this->factoryGenerator->generate($modelName, $table);
 
         $successMessages->push("Factory created: {$outputPath}");
 

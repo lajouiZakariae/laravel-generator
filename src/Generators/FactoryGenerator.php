@@ -3,7 +3,9 @@
 
 namespace LaravelGenerator\Generators;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use LaravelGenerator\Classes\Table;
 
 
 class FactoryGenerator
@@ -11,7 +13,7 @@ class FactoryGenerator
     /**
      * Generate the file from the stub template.
      */
-    public function generate($factoryName): string
+    public function generate(string $factoryName, ?Table $table = null): string
     {
         $rootNamespace = 'App\\';
 
@@ -21,14 +23,20 @@ class FactoryGenerator
 
         $modelClassName = "\\{$rootNamespace}Models\\{$modelName}";
 
+        $factoryArrayAsString = $table
+            ? $this->generateFactoryArrayAsString($table->factoryColumns)
+            : "return [];";
+
         $template = str()->replace(
             [
                 '{{ factoryName }}',
                 '{{ modelClassName }}',
+                '{{ factoryArrayAsString }}',
             ],
             [
                 $preparedFactoryName,
                 $modelClassName,
+                $factoryArrayAsString,
             ],
             $this->getStubFileContent()
         );
@@ -63,5 +71,27 @@ class FactoryGenerator
         }
 
         return File::get(__DIR__ . '/../stubs/factory.stub');
+    }
+
+    /**
+     * Generate the fillable columns text.
+     * @param Collection<string,string> $factories
+     * @return string
+     */
+    protected function generateFactoryArrayAsString(Collection $factories): string
+    {
+        if ($factories->isEmpty()) {
+            return "return [];";
+        }
+
+        $factoryArrayAsString = "return [\n";
+
+        $factories->each(function (string $factory, string $name) use (&$factoryArrayAsString): void {
+            $factoryArrayAsString .= "\t\t\t'" . $name . "' => " . $factory . ",\n";
+        });
+
+        $factoryArrayAsString .= "\t\t];";
+
+        return $factoryArrayAsString;
     }
 }

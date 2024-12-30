@@ -15,7 +15,7 @@ class Table
         /** @var Collection<int,string> */
         public Collection $fillableColumns,
 
-        /** @var Collection<int,string> */
+        /** @var Collection<string,string> */
         public Collection $factoryColumns,
 
         /** @var Collection<string,array<int,string>> */
