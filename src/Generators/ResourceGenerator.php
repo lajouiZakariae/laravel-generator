@@ -3,7 +3,7 @@
 
 namespace LaravelGenerator\Generators;
 
-use File;
+use \Illuminate\Support\Facades\File;
 
 class ResourceGenerator
 {
