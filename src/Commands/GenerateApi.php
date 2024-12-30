@@ -7,6 +7,7 @@ use LaravelGenerator\Generators\ControllerGenerator;
 use LaravelGenerator\Generators\FactoryGenerator;
 use LaravelGenerator\Generators\ModelGenerator;
 use LaravelGenerator\Generators\PolicyGenerator;
+use LaravelGenerator\Generators\RequestGeneratorRequest;
 use LaravelGenerator\Generators\ResourceGenerator;
 
 class GenerateApi extends Command
@@ -31,6 +32,7 @@ class GenerateApi extends Command
         protected PolicyGenerator $policyGenerator,
         protected ResourceGenerator $resourceGenerator,
         protected ControllerGenerator $controllerGenerator,
+        protected RequestGeneratorRequest $requestGeneratorRequest,
     ) {
         parent::__construct();
     }
@@ -61,5 +63,15 @@ class GenerateApi extends Command
         $outputPath = $this->controllerGenerator->generate($modelName);
 
         $this->info("Controller created: {$outputPath}");
+
+        // generate store request
+        $outputPath = $this->requestGeneratorRequest->generate($modelName, 'store');
+
+        $this->info("Store Request created: {$outputPath}");
+
+        // generate update request
+        $outputPath = $this->requestGeneratorRequest->generate($modelName, 'update');
+
+        $this->info("Update Request created: {$outputPath}");
     }
 }

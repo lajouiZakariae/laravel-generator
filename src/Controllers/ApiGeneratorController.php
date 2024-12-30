@@ -14,6 +14,7 @@ use LaravelGenerator\Generators\ModelGenerator;
 use LaravelGenerator\Generators\ControllerGenerator;
 use LaravelGenerator\Generators\FactoryGenerator;
 use LaravelGenerator\Generators\PolicyGenerator;
+use LaravelGenerator\Generators\RequestGeneratorRequest;
 use LaravelGenerator\Generators\ResourceGenerator;
 
 class ApiGeneratorController
@@ -24,6 +25,7 @@ class ApiGeneratorController
         protected PolicyGenerator $policyGenerator,
         protected ResourceGenerator $resourceGenerator,
         protected ControllerGenerator $controllerGenerator,
+        protected RequestGeneratorRequest $requestGeneratorRequest,
     ) {
     }
 
@@ -141,6 +143,16 @@ class ApiGeneratorController
         $outputPath = $this->controllerGenerator->generate($modelName);
 
         $successMessages->push("Controller created: {$outputPath}");
+
+        // generate store request
+        $outputPath = $this->requestGeneratorRequest->generate($modelName, 'store', $table);
+
+        $successMessages->push("Store Request created: {$outputPath}");
+
+        // generate update request
+        $outputPath = $this->requestGeneratorRequest->generate($modelName, 'update', $table);
+
+        $successMessages->push("Update Request created: {$outputPath}");
 
         return ['messages' => $successMessages];
     }
