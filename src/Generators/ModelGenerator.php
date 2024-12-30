@@ -3,14 +3,16 @@
 
 namespace LaravelGenerator\Generators;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use LaravelGenerator\Classes\Table;
 
 class ModelGenerator
 {
     /**
      * Generate the file from the stub template.
      */
-    public function generate($modelName): string
+    public function generate(string $modelName, ?Table $table = null): string
     {
         $rootNamespace = 'App\\';
 
@@ -18,18 +20,24 @@ class ModelGenerator
 
         $factoryNamespace = "\\Database\\Factories\\{$modelName}Factory";
 
+        $fillables = $table
+            ? $this->generateFillablesColumnsText($table->fillableColumns)
+            : "\n\tprotected \$fillable = [];";
+
         $template = str()->replace(
             [
                 '{{ rootNamespace }}',
                 '{{ modelNamespace }}',
                 '{{ modelName }}',
                 '{{ factoryNamespace }}',
+                '{{ fillables }}',
             ],
             [
                 $rootNamespace,
                 $modelNamespace,
                 $modelName,
                 $factoryNamespace,
+                $fillables,
             ],
             $this->getStubFileContent()
         );
@@ -64,5 +72,27 @@ class ModelGenerator
         }
 
         return File::get(__DIR__ . '/../stubs/model.stub');
+    }
+
+    /**
+     * Generate the fillable columns text.
+     * @param Collection<int,string> $fillables
+     * @return string
+     */
+    protected function generateFillablesColumnsText(Collection $fillables): string
+    {
+        if ($fillables->isEmpty()) {
+            return "\n\tprotected \$fillable = [];";
+        }
+
+        $fillablesColumnsText = "\n\tprotected \$fillable = [\n";
+
+        foreach ($fillables as $fillable) {
+            $fillablesColumnsText .= "\t\t'" . $fillable . "',\n";
+        }
+
+        $fillablesColumnsText .= "\t];";
+
+        return $fillablesColumnsText;
     }
 }

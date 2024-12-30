@@ -9,4 +9,5 @@ class {{ modelName }} extends Model
 {
     /** @use HasFactory<{{ factoryNamespace }}> */
     use HasFactory;
+    {{ fillables }}
 }

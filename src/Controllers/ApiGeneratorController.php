@@ -27,7 +27,7 @@ class ApiGeneratorController
     ) {
     }
 
-    public function __invoke(Request $request): Collection
+    public function __invoke(Request $request): array
     {
         $requestBodyAsCollection = collect($request->columns);
 
@@ -96,23 +96,13 @@ class ApiGeneratorController
             return NumericColumn::fromArray($columnArray);
         });
 
-        // dump($columnsCollection->toArray());
-
         $validationRules = $this->generateValidationRulesForColumn($columnsCollection);
-
-        // dump($validationRules->toArray());
 
         $updateValidationRules = $this->generateValidationRulesForColumn($columnsCollection, 'update');
 
-        // dump($updateValidationRules->toArray());
-
         $fillableColumns = $this->generateFillableColumns($columnsCollection);
 
-        // dump($fillableColumns->toArray());
-
         $factoryColumns = $this->generateFactoryColumns($columnsCollection);
-
-        // dump($factoryColumns->toArray());
 
         $table = new Table(
             $request->table_name,
@@ -125,31 +115,34 @@ class ApiGeneratorController
 
         $modelName = $table->getModelName();
 
+        $successMessages = collect([]);
+
         // generate factory
         $outputPath = $this->factoryGenerator->generate($modelName);
 
-        dump("Factory created: {$outputPath}");
+        $successMessages->push("Factory created: {$outputPath}");
 
         // generate model
-        $outputPath = $this->modelGenerator->generate($modelName);
+        $outputPath = $this->modelGenerator->generate($modelName, $table);
 
-        dump("Model created: {$outputPath}");
+        $successMessages->push("Model created: {$outputPath}");
 
+        // generate policy
         $outputPath = $this->policyGenerator->generate($modelName);
 
-        dump("Policy created: {$outputPath}");
+        $successMessages->push("Policy created: {$outputPath}");
 
+        // generate resource
         $outputPath = $this->resourceGenerator->generate($modelName);
 
-        dump("Resource created: {$outputPath}");
+        $successMessages->push("Resource created: {$outputPath}");
 
+        // generate controller
         $outputPath = $this->controllerGenerator->generate($modelName);
 
-        dump("Controller created: {$outputPath}");
+        $successMessages->push("Controller created: {$outputPath}");
 
-        dd($table);
-
-        return $columnsCollection;
+        return ['messages' => $successMessages];
     }
 
     private function generateValidationRulesForColumn(Collection $columnsCollection, string $action = "store"): Collection
