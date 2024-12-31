@@ -116,8 +116,6 @@ class ApiGeneratorController
             $updateValidationRules,
         );
 
-        $table->getResolvedRelations();
-
         $modelName = $table->getModelName();
 
         $successMessages = collect([]);

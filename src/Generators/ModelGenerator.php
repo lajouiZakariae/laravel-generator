@@ -5,6 +5,8 @@ namespace LaravelGenerator\Generators;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use LaravelGenerator\Classes\Column;
+use LaravelGenerator\Classes\Relation;
 use LaravelGenerator\Classes\Table;
 
 class ModelGenerator
@@ -24,6 +26,14 @@ class ModelGenerator
             ? $this->generateFillablesColumnsText($table->fillableColumns)
             : "\n\tprotected \$fillable = [];";
 
+        $relationsAsText = $table
+            ? $this->generateRelationsText($table->getResolvedRelations())
+            : "";
+
+        $additionalImports = $table
+            ? $this->generateAdditionalImports($table->columns)
+            : "";
+
         $template = str()->replace(
             [
                 '{{ rootNamespace }}',
@@ -31,6 +41,8 @@ class ModelGenerator
                 '{{ modelName }}',
                 '{{ factoryNamespace }}',
                 '{{ fillables }}',
+                '{{ relationsAsText }}',
+                '{{ additionalImports }}',
             ],
             [
                 $rootNamespace,
@@ -38,6 +50,8 @@ class ModelGenerator
                 $modelName,
                 $factoryNamespace,
                 $fillables,
+                $relationsAsText,
+                $additionalImports,
             ],
             $this->getStubFileContent()
         );
@@ -94,5 +108,32 @@ class ModelGenerator
         $fillablesColumnsText .= "\t];";
 
         return $fillablesColumnsText;
+    }
+
+    protected function generateRelationsText(Collection $relations): string
+    {
+        if ($relations->isEmpty()) {
+            return "";
+        }
+
+        $relationsColumnsText = "";
+
+        $relations->each(function (Relation $relation) use (&$relationsColumnsText): void {
+            $singleRelationText = "\n\tpublic function " . $relation->getMethodName() . "(): BelongsTo\n\t{\n\t\treturn \$this->belongsTo(" . $relation->getModelName() . "::class);\n\t}";
+            $relationsColumnsText .= $singleRelationText;
+        });
+
+        return $relationsColumnsText;
+    }
+
+    protected function generateAdditionalImports(Collection $columns): string
+    {
+        $relationsCount = $columns
+            ->filter(fn(Column $column): bool => $column->isForeign)
+            ->count() > 0;
+
+        $imports = $relationsCount ? "use Illuminate\Database\Eloquent\Relations\BelongsTo;" : "";
+
+        return "$imports\n";
     }
 }

@@ -93,7 +93,18 @@ class Table
         if ($this->relations === null) {
             $this->relations = collect();
 
-            // dd($this->columns);
+            foreach ($this->columns as $value) {
+                if (!$value->isForeign) {
+                    continue;
+                }
+
+                $this->relations->push(new Relation(
+                    $value->foreign->references,
+                    $value->foreign->on,
+                    $value->name,
+                    $this->tableName,
+                ));
+            }
         }
 
         return $this->relations;

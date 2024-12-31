@@ -31,7 +31,6 @@ class RequestGeneratorRequest
             ? $this->generateAdditionalImports($table->columns)
             : "";
 
-
         $template = str()->replace(
             [
                 '{{ rootNamespace }}',

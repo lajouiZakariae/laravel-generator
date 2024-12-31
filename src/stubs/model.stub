@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+{{ additionalImports }}
 class {{ modelName }} extends Model
 {
     /** @use HasFactory<{{ factoryNamespace }}> */
     use HasFactory;
     {{ fillables }}
+    {{ relationsAsText }}
 }
