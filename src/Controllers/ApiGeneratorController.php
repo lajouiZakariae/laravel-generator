@@ -217,6 +217,14 @@ class ApiGeneratorController
                     return [$column->name => 'fake()->text(' . ($column->stringMax ?: '') . ')'];
                 }
 
+                if ($column instanceof NumericColumn) {
+                    if ($column->isForeign) {
+                        return [$column->name => str($column->foreign->on)->singular()->camel()->ucfirst() . '::factory()'];
+                    }
+
+                    return [$column->name => 'fake()->randomNumber()'];
+                }
+
                 return [$column->name => ''];
             });
     }

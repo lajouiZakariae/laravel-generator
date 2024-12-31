@@ -5,6 +5,7 @@ namespace LaravelGenerator\Generators;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use LaravelGenerator\Classes\Column;
 use LaravelGenerator\Classes\Table;
 
 
@@ -27,16 +28,22 @@ class FactoryGenerator
             ? $this->generateFactoryArrayAsString($table->factoryColumns)
             : "return [];";
 
+        $additionalImports = $table
+            ? $this->generateAdditionalImports($table->columns)
+            : "";
+
         $template = str()->replace(
             [
                 '{{ factoryName }}',
                 '{{ modelClassName }}',
                 '{{ factoryArrayAsString }}',
+                '{{ additionalImports }}',
             ],
             [
                 $preparedFactoryName,
                 $modelClassName,
                 $factoryArrayAsString,
+                $additionalImports,
             ],
             $this->getStubFileContent()
         );
@@ -87,11 +94,24 @@ class FactoryGenerator
         $factoryArrayAsString = "return [\n";
 
         $factories->each(function (string $factory, string $name) use (&$factoryArrayAsString): void {
-            $factoryArrayAsString .= "\t\t\t'" . $name . "' => " . $factory . ",\n";
+            $factoryArrayAsString .= "\t\t\t'$name' => $factory,\n";
         });
 
         $factoryArrayAsString .= "\t\t];";
 
         return $factoryArrayAsString;
+    }
+
+    protected function generateAdditionalImports(Collection $columns): string
+    {
+        $imports = $columns
+            ->filter(fn(Column $column): bool => $column->isForeign)
+            ->map(fn(Column $column): string => $column->foreign->on)
+            ->unique()
+            ->map(fn(string $tableName): string => str($tableName)->singular()->camel()->ucfirst())
+            ->map(fn(string $tableName): string => "use App\\Models\\$tableName;")
+            ->implode("\n");
+
+        return "$imports\n";
     }
 }
