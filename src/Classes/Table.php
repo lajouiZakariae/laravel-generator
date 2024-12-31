@@ -6,6 +6,8 @@ use Illuminate\Support\Collection;
 
 class Table
 {
+    protected ?Collection $relations = null;
+
     public function __construct(
         public string $tableName,
 
@@ -85,6 +87,18 @@ class Table
     {
         return "{$this->getModelName()}Policy";
     }
+
+    public function getResolvedRelations(): Collection
+    {
+        if ($this->relations === null) {
+            $this->relations = collect();
+
+            // dd($this->columns);
+        }
+
+        return $this->relations;
+    }
+
 
     public static function fromArray(array $data)
     {

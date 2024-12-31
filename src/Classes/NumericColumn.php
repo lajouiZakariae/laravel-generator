@@ -6,8 +6,6 @@ class NumericColumn extends Column
 {
     public bool $unsigned;
 
-    public ?string $maxValue = null;
-
     public function __construct(
         string $id,
         string $name,
@@ -15,15 +13,12 @@ class NumericColumn extends Column
         bool $isPrimary,
         bool $isNullable,
         bool $isForeign,
-        ?string $maxValue = null,
         ?bool $unsigned = false,
         ?Foreign $foreign = null
     ) {
         parent::__construct($id, $name, $type, $isPrimary, $isNullable, $isForeign, $foreign);
 
         $this->unsigned = $unsigned;
-
-        $this->maxValue = $maxValue;
     }
 
     public static function fromArray(array $data): self
@@ -39,12 +34,11 @@ class NumericColumn extends Column
 
         return new self(
             $data['id'] ?? '',
-            $data['type'] ?? '',
             $data['name'] ?? '',
+            $data['type'] ?? '',
             $data['isPrimary'] ?? false,
             $data['isNullable'] ?? false,
             $data['isForeign'] ?? false,
-            $data['maxValue'] ?? null,
             $data['unsigned'] ?? false,
             $foreign,
         );

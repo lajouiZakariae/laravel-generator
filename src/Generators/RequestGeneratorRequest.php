@@ -5,6 +5,7 @@ namespace LaravelGenerator\Generators;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use LaravelGenerator\Classes\Column;
 use LaravelGenerator\Classes\Table;
 
 class RequestGeneratorRequest
@@ -26,18 +27,25 @@ class RequestGeneratorRequest
             ? $this->generateRulesAsText($action === "update" ? $table->updateValidationRules : $table->validationRules)
             : "return [];";
 
+        $additionalImports = $table
+            ? $this->generateAdditionalImports($table->columns)
+            : "";
+
+
         $template = str()->replace(
             [
                 '{{ rootNamespace }}',
                 '{{ requestNamespace }}',
                 '{{ requestName }}',
                 '{{ rulesArrayAsString }}',
+                '{{ additionalImports }}',
             ],
             [
                 $rootNamespace,
                 $requestNamespace,
                 $preparedRequestName,
                 $rulesArrayAsString,
+                $additionalImports,
             ],
             $this->getStubFileContent()
         );
@@ -87,23 +95,32 @@ class RequestGeneratorRequest
 
         $rulesAsText = "return [\n";
 
-        // dump($validationRules);
-
         $validationRules->each(function (array $rules, string $columnName) use (&$rulesAsText): void {
-            $rulesAsString = "[" . collect($rules)->map(fn(string $rule): string => "'$rule'")->implode(", ") . "],\n";
+            $rulesReduced = collect($rules)
+                ->map(fn(string $rule): string => str($rule)->startsWith('Rule::') ? $rule : "'$rule'")->implode(", ");
+
+            $rulesAsString = "[$rulesReduced],\n";
 
             $rulesLineAsString = "\t\t\t'$columnName' => $rulesAsString";
 
             $rulesAsText .= "{$rulesLineAsString}";
         });
 
-
-        // foreach ($validationRules as $fillable) {
-        //     $rulesAsText .= "\t\t'" . $fillable . "',\n";
-        // }
-
         $rulesAsText .= "\t\t];";
 
         return $rulesAsText;
+    }
+
+    protected function generateAdditionalImports(Collection $columns): string
+    {
+        $imports = $columns
+            ->filter(fn(Column $column): bool => $column->isForeign)
+            ->map(fn(Column $column): string => $column->foreign->on)
+            ->unique()
+            ->map(fn(string $tableName): string => str($tableName)->singular()->camel()->ucfirst())
+            ->map(fn(string $tableName): string => "use App\\Models\\$tableName;")
+            ->implode("\n");
+
+        return "$imports\n";
     }
 }

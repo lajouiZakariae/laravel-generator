@@ -42,6 +42,7 @@ class ApiGeneratorController
 
             $enumPossibleValues = null;
 
+            // TODO: REFACTOR THIS
             if (str($typeFormat)->contains('(') && str($typeFormat)->contains(')')) {
                 $type = str($typeFormat)->before('(')->toString();
 
@@ -115,6 +116,8 @@ class ApiGeneratorController
             $updateValidationRules,
         );
 
+        $table->getResolvedRelations();
+
         $modelName = $table->getModelName();
 
         $successMessages = collect([]);
@@ -179,6 +182,10 @@ class ApiGeneratorController
 
                     if ($column->type === "float")
                         $columnValidationRules[] = "numeric";
+                }
+
+                if ($column->isForeign) {
+                    $columnValidationRules[] = "Rule::exists(" . str($column->foreign->on)->singular()->camel()->ucfirst() . "::class, '" . $column->foreign->references . "')";
                 }
 
                 $validationRules->put($column->name, $columnValidationRules);
