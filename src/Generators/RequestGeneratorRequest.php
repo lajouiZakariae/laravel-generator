@@ -6,7 +6,7 @@ namespace LaravelGenerator\Generators;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use LaravelGenerator\Classes\BoolColumn;
-use LaravelGenerator\Classes\Column;
+use LaravelGenerator\Classes\PrimaryCloumn;
 use LaravelGenerator\Classes\EnumColumn;
 use LaravelGenerator\Classes\Table;
 
@@ -116,16 +116,16 @@ class RequestGeneratorRequest
     {
         $imports = $table
             ->columns
-            ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => $column instanceof Column)
-            ->filter(fn(Column $column): bool => $column->isForeign)
-            ->map(fn(Column $column): string => $column->foreign->on)
+            ->filter(fn(PrimaryCloumn|EnumColumn|BoolColumn $column): bool => $column instanceof PrimaryCloumn)
+            ->filter(fn(PrimaryCloumn $column): bool => $column->isForeign)
+            ->map(fn(PrimaryCloumn $column): string => $column->foreign->on)
             ->unique()
             ->map(fn(string $tableName): string => str($tableName)->singular()->camel()->ucfirst())
             ->map(fn(string $tableName): string => "use App\\Models\\$tableName;")
             ->implode("\n");
 
         $enumImports = $table->columns
-            ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => $column instanceof EnumColumn)
+            ->filter(fn(PrimaryCloumn|EnumColumn|BoolColumn $column): bool => $column instanceof EnumColumn)
             ->map(fn(EnumColumn $column): string => Table::generateEnumName($table->getName(), $column->name))
             ->unique()
             ->map(fn(string $enumName): string => "use App\\Enums\\{$enumName};");

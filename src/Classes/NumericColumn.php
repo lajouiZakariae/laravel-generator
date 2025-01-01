@@ -2,7 +2,7 @@
 
 namespace LaravelGenerator\Classes;
 
-class NumericColumn extends Column
+class NumericColumn extends PrimaryCloumn
 {
     public bool $unsigned;
 

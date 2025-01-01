@@ -10,7 +10,7 @@ class Table
     public function __construct(
         public string $tableName,
 
-        /** @var Collection<int,Column> */
+        /** @var Collection<int,PrimaryCloumn> */
         public Collection $columns,
 
         /** @var Collection<int,string> */

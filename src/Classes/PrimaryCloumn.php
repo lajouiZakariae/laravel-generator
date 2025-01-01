@@ -2,22 +2,30 @@
 
 namespace LaravelGenerator\Classes;
 
-class StringColumn extends PrimaryCloumn
+class PrimaryCloumn extends Column
 {
-    public string $stringMax;
+    public bool $isPrimary;
+
+    public bool $isForeign;
+
+    public ?Foreign $foreign = null;
 
     public function __construct(
         string $id,
         string $name,
+        string $type,
         bool $isPrimary,
         bool $isNullable,
         bool $isForeign,
-        string $stringMax,
-        ?Foreign $foreign = null
+        ?Foreign $foreign = null,
     ) {
-        parent::__construct($id, $name, 'string', $isPrimary, $isNullable, $isForeign, $foreign);
+        parent::__construct($id, $type, $name, $isNullable);
 
-        $this->stringMax = $stringMax;
+        $this->isPrimary = $isPrimary;
+
+        $this->isForeign = $isForeign;
+
+        $this->foreign = $foreign;
     }
 
     public static function fromArray(array $data): self
@@ -27,18 +35,18 @@ class StringColumn extends PrimaryCloumn
         if (!empty($data['foreign']) && is_array($data['foreign'])) {
             $foreign = new Foreign(
                 $data['foreign']['references'] ?? '',
-                $data['foreign']['on'] ?? ''
+                $data['foreign']['on'] ?? '',
             );
         }
 
         return new self(
             $data['id'] ?? '',
             $data['name'] ?? '',
+            $data['type'] ?? '',
             $data['isPrimary'] ?? false,
             $data['isNullable'] ?? false,
             $data['isForeign'] ?? false,
-            $data['stringMax'] ?? '',
-            $foreign
+            $foreign,
         );
     }
 }

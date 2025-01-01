@@ -6,7 +6,7 @@ namespace LaravelGenerator\Generators;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use LaravelGenerator\Classes\BoolColumn;
-use LaravelGenerator\Classes\Column;
+use LaravelGenerator\Classes\PrimaryCloumn;
 use LaravelGenerator\Classes\EnumColumn;
 use LaravelGenerator\Classes\Relation;
 use LaravelGenerator\Classes\Table;
@@ -154,7 +154,7 @@ class ModelGenerator
         }, "");
 
         $enumImports = $table->columns
-            ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => $column instanceof EnumColumn)
+            ->filter(fn(PrimaryCloumn|EnumColumn|BoolColumn $column): bool => $column instanceof EnumColumn)
             ->map(fn(EnumColumn $column): string => Table::generateEnumName($table->getName(), $column->name))
             ->unique()
             ->map(fn(string $enumName): string => "use App\\Enums\\{$enumName};");
@@ -165,14 +165,14 @@ class ModelGenerator
     }
 
     /**
-     * @param \Illuminate\Support\Collection<int,Column|EnumColumn|BoolColumn> $columns
+     * @param \Illuminate\Support\Collection<int,PrimaryCloumn|EnumColumn|BoolColumn> $columns
      * @return string
      */
     protected function generateCastsText(Table $table): string
     {
         $castableColumns = $table
             ->columns
-            ->filter(function (Column|EnumColumn|BoolColumn $column): bool {
+            ->filter(function (PrimaryCloumn|EnumColumn|BoolColumn $column): bool {
                 return $column instanceof EnumColumn || $column instanceof BoolColumn;
             });
 

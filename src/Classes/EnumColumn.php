@@ -2,9 +2,8 @@
 
 namespace LaravelGenerator\Classes;
 
-class EnumColumn
+class EnumColumn extends Column
 {
-    public string $type = "enum";
 
     public function __construct(
         public string $id,
@@ -12,6 +11,7 @@ class EnumColumn
         public bool $isNullable,
         public array $enumValues,
     ) {
+        parent::__construct($id, 'enum', $name, $isNullable);
     }
 
     public static function fromArray(array $data): self

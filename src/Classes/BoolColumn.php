@@ -2,15 +2,14 @@
 
 namespace LaravelGenerator\Classes;
 
-class BoolColumn
+class BoolColumn extends Column
 {
-    public string $type = "bool";
-
     public function __construct(
         public string $id,
         public string $name,
         public bool $isNullable,
     ) {
+        parent::__construct($id, 'bool', $name, $isNullable);
     }
 
     public static function fromArray(array $data): self
