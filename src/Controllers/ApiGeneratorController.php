@@ -5,6 +5,7 @@ namespace LaravelGenerator\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use LaravelGenerator\Classes\BoolColumn;
 use LaravelGenerator\Classes\Column;
 use LaravelGenerator\Classes\EnumColumn;
 use LaravelGenerator\Classes\NumericColumn;
@@ -49,7 +50,7 @@ class ApiGeneratorController
          */
         $columnsCollectionOfArrays = collect($table['columns']);
 
-        $columnsCollection = $columnsCollectionOfArrays->map(function (array $columnArray): EnumColumn|NumericColumn|StringColumn {
+        $columnsCollection = $columnsCollectionOfArrays->map(function (array $columnArray): EnumColumn|NumericColumn|StringColumn|BoolColumn {
             if (in_array($columnArray['type'], ['bigint', 'int', 'float'])) {
                 return NumericColumn::fromArray($columnArray);
             }
@@ -60,6 +61,10 @@ class ApiGeneratorController
 
             if ($columnArray['type'] === 'enum') {
                 return EnumColumn::fromArray($columnArray);
+            }
+
+            if ($columnArray['type'] === 'bool' || $columnArray['type'] === 'boolean') {
+                return BoolColumn::fromArray($columnArray);
             }
 
             return NumericColumn::fromArray($columnArray);
@@ -129,7 +134,7 @@ class ApiGeneratorController
         // generate enums for enum columns
         $enumColumns = $table
             ->columns
-            ->filter(fn(Column|EnumColumn $column): bool => $column instanceof EnumColumn);
+            ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => $column instanceof EnumColumn);
 
         if ($enumColumns->isNotEmpty()) {
             $baseEnumStubFilePath = File::exists(resource_path('stubs/base-enum.stub')) ? resource_path('stubs/base-enum.stub') : __DIR__ . '/../../stubs/base-enum.stub';
@@ -155,7 +160,7 @@ class ApiGeneratorController
     {
         $validationRules = collect([]);
 
-        $columnsCollection->each(function (EnumColumn|NumericColumn|StringColumn $column) use ($validationRules, $action, $tableName): void {
+        $columnsCollection->each(function (EnumColumn|NumericColumn|StringColumn|BoolColumn $column) use ($validationRules, $action, $tableName): void {
             if ($column instanceof EnumColumn) {
                 $columnValidationRules = [];
 
@@ -168,7 +173,7 @@ class ApiGeneratorController
                 $validationRules->put($column->name, $columnValidationRules);
             }
 
-            if (!$column instanceof EnumColumn && !$column->isPrimary) {
+            if (!$column instanceof EnumColumn && !$column instanceof BoolColumn && !$column->isPrimary) {
                 $columnValidationRules = [];
 
                 $columnValidationRules[] = $action === 'store' ? $column->isNullable ? 'nullable' : 'required' : 'nullable';
@@ -179,7 +184,7 @@ class ApiGeneratorController
                     $columnValidationRules[] = "max:" . ($column->stringMax ?: 255);
                 }
 
-                if ($column instanceof NumericColumn && !$column->isPrimary) {
+                if ($column instanceof NumericColumn) {
                     if ($column->type === "int" || $column)
                         $columnValidationRules[] = "integer";
 
@@ -201,15 +206,15 @@ class ApiGeneratorController
     private function generateFillableColumns(Collection $columnsCollection): Collection
     {
         return $columnsCollection
-            ->filter(fn(Column|EnumColumn $column): bool => !$column instanceof EnumColumn && !$column->isPrimary)
-            ->map(fn(Column|EnumColumn $column): string => $column->name);
+            ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => (!$column instanceof EnumColumn && !$column instanceof BoolColumn) ? !$column->isPrimary : true)
+            ->map(fn(Column|EnumColumn|BoolColumn $column): string => $column->name);
     }
 
     private function generateFactoryColumns(Collection $columnsCollection, string $tableName): Collection
     {
         return $columnsCollection
-            ->filter(fn(Column|EnumColumn $column): bool => !$column instanceof EnumColumn ? !$column->isPrimary : true)
-            ->mapWithKeys(function (Column|EnumColumn $column) use ($tableName): array {
+            ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => (!$column instanceof EnumColumn && !$column instanceof BoolColumn) ? !$column->isPrimary : true)
+            ->mapWithKeys(function (Column|EnumColumn|BoolColumn $column) use ($tableName): array {
                 if ($column instanceof StringColumn) {
                     if ($column->name === 'email') {
                         return [$column->name => 'fake()->email()'];
@@ -233,6 +238,10 @@ class ApiGeneratorController
 
                 if ($column instanceof EnumColumn) {
                     return [$column->name => 'fake()->randomElement(' . Table::generateEnumName($tableName, $column->name) . 'Enum::values())'];
+                }
+
+                if ($column instanceof BoolColumn) {
+                    return [$column->name => 'fake()->boolean()'];
                 }
 
                 return [$column->name => ''];
