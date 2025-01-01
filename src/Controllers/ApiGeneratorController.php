@@ -31,7 +31,7 @@ class ApiGeneratorController
 
     public function __invoke(Request $request): array
     {
-        return collect($request->all())->map(fn($table): array => $this->generateApiForTable($table))->toArray();
+        return ['messages' => collect($request->all())->map(fn($table): array => $this->generateApiForTable($table))->flatten()->toArray()];
     }
 
     public function generateApiForTable(array $table): array
@@ -123,7 +123,7 @@ class ApiGeneratorController
 
         $successMessages->push("Update Request created: {$outputPath}");
 
-        return ['messages' => $successMessages];
+        return $successMessages->toArray();
     }
 
     private function generateValidationRulesForColumn(Collection $columnsCollection, string $action = "store"): Collection
