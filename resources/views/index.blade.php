@@ -12,10 +12,36 @@
                         <x-laravel-generator::input placeholder="Column Name" v-model="table.tableName"
                             ::id="table.tableName" />
 
-                        <button type="button" class="btn btn-sm btn-primary mb-2" :data-table-id="table.tableId"
-                            @click="addEmptyColumn">
-                            Add Column
-                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-primary btn-sm dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Add Column
+                            </button>
+
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <span type="button" :data-table-id="table.tableId" @click="addEmptyColumn">
+                                            Empty Column
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <span type="button" :data-table-id="table.tableId" @click="addStringColumn">
+                                            String Column
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <span type="button" :data-table-id="table.tableId" @click="addEnumColumn">
+                                            Enum Column
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                     <table class="table">

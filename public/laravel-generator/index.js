@@ -85,6 +85,33 @@ PetiteVue.createApp({
             foreign: null,
         })
     },
+    addEnumColumn(ev) {
+        const table = this.tables.find(
+            table => table.tableId === ev.target.dataset.tableId
+        )
+
+        table.columns.push({
+            id: UUID.generate(),
+            name: '',
+            type: 'enum()',
+            isNullable: false,
+        })
+    },
+    addStringColumn(ev) {
+        const table = this.tables.find(
+            table => table.tableId === ev.target.dataset.tableId
+        )
+
+        table.columns.push({
+            id: UUID.generate(),
+            name: '',
+            type: 'string',
+            isPrimary: false,
+            isNullable: false,
+            isForeign: false,
+            foreign: null,
+        })
+    },
     async post() {
         try {
             const preparedTables = prepareColumnsOfTables(this.tables)
