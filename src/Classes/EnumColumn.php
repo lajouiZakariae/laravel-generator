@@ -10,7 +10,7 @@ class EnumColumn
         public string $id,
         public string $name,
         public bool $isNullable,
-        public array $possibleValues,
+        public array $enumValues,
     ) {
     }
 
@@ -20,7 +20,7 @@ class EnumColumn
             $data['id'] ?? '',
             $data['name'] ?? '',
             $data['type'] ?? '',
-            $data['possibleValues'],
+            $data['enumValues'],
         );
     }
 }

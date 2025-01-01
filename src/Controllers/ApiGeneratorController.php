@@ -131,7 +131,7 @@ class ApiGeneratorController
         $validationRules = collect([]);
 
         $columnsCollection->each(function (EnumColumn|NumericColumn|StringColumn $column) use ($validationRules, $action): void {
-            if (!$column->isPrimary) {
+            if (!$column instanceof EnumColumn && !$column->isPrimary) {
                 $columnValidationRules = [];
 
                 $columnValidationRules[] = $action === 'store' ? $column->isNullable ? 'nullable' : 'required' : 'nullable';
@@ -164,15 +164,15 @@ class ApiGeneratorController
     private function generateFillableColumns(Collection $columnsCollection): Collection
     {
         return $columnsCollection
-            ->filter(fn(Column $column): bool => !$column->isPrimary)
-            ->map(fn(Column $column): string => $column->name);
+            ->filter(fn(Column|EnumColumn $column): bool => !$column instanceof EnumColumn && !$column->isPrimary)
+            ->map(fn(Column|EnumColumn $column): string => $column->name);
     }
 
     private function generateFactoryColumns(Collection $columnsCollection): Collection
     {
         return $columnsCollection
-            ->filter(fn(Column $column): bool => !$column->isPrimary)
-            ->mapWithKeys(function (Column $column, string $key): array {
+            ->filter(fn(Column|EnumColumn $column): bool => !$column instanceof EnumColumn && !$column->isPrimary)
+            ->mapWithKeys(function (Column $column): array {
                 if ($column instanceof StringColumn) {
                     if ($column->name === 'email') {
                         return [$column->name => 'fake()->email()'];

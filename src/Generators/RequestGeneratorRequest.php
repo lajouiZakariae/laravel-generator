@@ -6,6 +6,7 @@ namespace LaravelGenerator\Generators;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use LaravelGenerator\Classes\Column;
+use LaravelGenerator\Classes\EnumColumn;
 use LaravelGenerator\Classes\Table;
 
 class RequestGeneratorRequest
@@ -113,6 +114,7 @@ class RequestGeneratorRequest
     protected function generateAdditionalImports(Collection $columns): string
     {
         $imports = $columns
+            ->filter(fn(Column|EnumColumn $column): bool => $column instanceof Column)
             ->filter(fn(Column $column): bool => $column->isForeign)
             ->map(fn(Column $column): string => $column->foreign->on)
             ->unique()
