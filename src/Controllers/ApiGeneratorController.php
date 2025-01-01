@@ -173,7 +173,7 @@ class ApiGeneratorController
 
                 $enumName = Table::generateEnumName($tableName, $column->name);
 
-                $columnValidationRules[] = "Rule::enum({$enumName}Enum::class)";
+                $columnValidationRules[] = "Rule::enum({$enumName}::class)";
 
                 $validationRules->put($column->name, $columnValidationRules);
             }
