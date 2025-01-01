@@ -71,8 +71,6 @@ PetiteVue.createApp({
     successMessages: [],
     errorMessages: [],
     addEmptyColumn(ev) {
-        console.log(ev.target.dataset.tableId)
-
         const table = this.tables.find(
             table => table.tableId === ev.target.dataset.tableId
         )
