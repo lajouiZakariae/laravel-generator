@@ -2,6 +2,7 @@
 
 namespace LaravelGenerator;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use LaravelGenerator\Commands\GenerareCustomFactory;
 use LaravelGenerator\Commands\GenerareCustomModel;
@@ -19,6 +20,7 @@ class LaravelGeneratorServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->loadRoutesFrom(__DIR__ . "/../routes/laravel-generator-routes.php");
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'laravel-generator');
     }
 
     /**
@@ -26,6 +28,8 @@ class LaravelGeneratorServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::componentNamespace('LaravelGenerator\\Views\\Components', 'laravel-generator');
+
         $this->commands([
             GenerateApi::class,
             GenerateCustomController::class,
@@ -35,5 +39,9 @@ class LaravelGeneratorServiceProvider extends ServiceProvider
             GenerareCustomPolicy::class,
             GenerareCustomRequest::class,
         ]);
+
+        $this->publishes([
+            __DIR__ . '/../public' => public_path('vendor/laravel-generator'),
+        ], 'lg-public');
     }
 }
