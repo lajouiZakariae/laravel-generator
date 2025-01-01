@@ -2,9 +2,9 @@
 
     <div class="p-2">
 
-        <form class="form" @submit.prevent="post">
+        <form class="form" @submit.prevent="store.post">
 
-            <template v-for="table in tables" :key="table.id">
+            <template v-for="table in store.tables" :key="table.id">
 
                 <div style="margin-bottom: 20px;border: 1px solid #ccc;padding: 10px;" class="card">
 
@@ -21,21 +21,24 @@
                             <ul class="dropdown-menu">
                                 <li>
                                     <a class="dropdown-item" href="#">
-                                        <span type="button" :data-table-id="table.tableId" @click="addEmptyColumn">
+                                        <span type="button" :data-table-id="table.tableId"
+                                            @click="store.addEmptyColumn">
                                             Empty Column
                                         </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="#">
-                                        <span type="button" :data-table-id="table.tableId" @click="addStringColumn">
+                                        <span type="button" :data-table-id="table.tableId"
+                                            @click="store.addStringColumn">
                                             String Column
                                         </span>
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="#">
-                                        <span type="button" :data-table-id="table.tableId" @click="addEnumColumn">
+                                        <span type="button" :data-table-id="table.tableId"
+                                            @click="store.addEnumColumn">
                                             Enum Column
                                         </span>
                                     </a>

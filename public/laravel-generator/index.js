@@ -1,73 +1,100 @@
 import { UUID } from 'https://unpkg.com/uuidjs@^5'
+import { createApp, reactive } from 'https://unpkg.com/petite-vue?module'
 
-PetiteVue.createApp({
-    tables: [
-        {
-            tableId: UUID.generate(),
-            tableName: 'users',
-            columns: [
-                {
-                    id: UUID.generate(),
-                    name: 'id',
-                    unsigned: true,
-                    type: 'bigint',
-                    isPrimary: true,
-                    isNullable: false,
-                    isForeign: false,
-                    foreign: null,
-                },
-            ],
-        },
-        {
-            tableId: UUID.generate(),
-            tableName: 'bank_developers',
-            columns: [
-                {
-                    id: UUID.generate(),
-                    name: 'id',
-                    unsigned: true,
-                    type: 'bigint',
-                    isPrimary: true,
-                    isNullable: false,
-                    isForeign: false,
-                    foreign: null,
-                },
-                {
-                    id: UUID.generate(),
-                    name: 'zip_code',
-                    type: 'string(10)',
-                    isPrimary: false,
-                    isNullable: false,
-                    isForeign: false,
-                    foreign: null,
-                },
-                {
-                    id: UUID.generate(),
-                    name: 'status',
-                    type: "enum('Accepted','Banned','Pending')",
-                    isNullable: false,
-                },
-                {
-                    id: UUID.generate(),
-                    name: 'is_adult',
-                    type: 'bool',
-                    isNullable: false,
-                },
-                {
-                    id: UUID.generate(),
-                    name: 'user_id',
-                    type: 'bigint',
-                    isPrimary: false,
-                    isNullable: false,
-                    isForeign: true,
-                    foreign: {
-                        references: 'id',
-                        on: 'users',
+class PayloadStorage {
+    static set(payload) {
+        Cookies.set('laravel-generator-payload', JSON.stringify(payload), {
+            expires: 30,
+        })
+    }
+
+    static get() {
+        const payloadFromCookies = Cookies.get('laravel-generator-payload')
+
+        if (payloadFromCookies) {
+            try {
+                return JSON.parse(payloadFromCookies)
+            } catch (error) {}
+        }
+
+        PayloadStorage.set([
+            {
+                tableId: UUID.generate(),
+                tableName: 'users',
+                columns: [
+                    {
+                        id: UUID.generate(),
+                        name: 'id',
+                        unsigned: true,
+                        type: 'bigint',
+                        isPrimary: true,
+                        isNullable: false,
+                        isForeign: false,
+                        foreign: null,
                     },
-                },
-            ],
-        },
-    ],
+                ],
+            },
+            {
+                tableId: UUID.generate(),
+                tableName: 'bank_developers',
+                columns: [
+                    {
+                        id: UUID.generate(),
+                        name: 'id',
+                        unsigned: true,
+                        type: 'bigint',
+                        isPrimary: true,
+                        isNullable: false,
+                        isForeign: false,
+                        foreign: null,
+                    },
+                    {
+                        id: UUID.generate(),
+                        name: 'zip_code',
+                        type: 'string(10)',
+                        isPrimary: false,
+                        isNullable: false,
+                        isForeign: false,
+                        foreign: null,
+                    },
+                    {
+                        id: UUID.generate(),
+                        name: 'status',
+                        type: "enum('Accepted','Banned','Pending')",
+                        isNullable: false,
+                    },
+                    {
+                        id: UUID.generate(),
+                        name: 'is_adult',
+                        type: 'bool',
+                        isNullable: false,
+                    },
+                    {
+                        id: UUID.generate(),
+                        name: 'user_id',
+                        type: 'bigint',
+                        isPrimary: false,
+                        isNullable: false,
+                        isForeign: true,
+                        foreign: {
+                            references: 'id',
+                            on: 'users',
+                        },
+                    },
+                ],
+            },
+        ])
+
+        return PayloadStorage.get()
+    }
+
+    static remove() {
+        Cookies.remove('laravel-generator-payload')
+    }
+}
+
+const tables = reactive({
+    tables: PayloadStorage.get(),
     successMessages: [],
     errorMessages: [],
     addEmptyColumn(ev) {
@@ -150,7 +177,9 @@ PetiteVue.createApp({
             // });
         } catch (error) {}
     },
-}).mount('.form')
+})
+
+createApp({ store: tables }).mount('.form')
 
 /**
  * Prepare columns of the tables
