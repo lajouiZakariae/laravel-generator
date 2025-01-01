@@ -38,17 +38,17 @@ class ApiGeneratorController
         return ['messages' => collect($request->all())->map(fn($table): array => $this->generateApiForTable($table))->flatten()->toArray()];
     }
 
-    public function generateApiForTable(array $table): array
+    public function generateApiForTable(array $tableData): array
     {
         /**
          * @var string $tableName
          */
-        $tableName = $table['table_name'];
+        $tableName = $tableData['table_name'];
 
         /**
          * @var Collection<int,Column> $columnsCollection
          */
-        $columnsCollectionOfArrays = collect($table['columns']);
+        $columnsCollectionOfArrays = collect($tableData['columns']);
 
         $columnsCollection = $columnsCollectionOfArrays->map(function (array $columnArray): EnumColumn|NumericColumn|StringColumn|BoolColumn {
             if (in_array($columnArray['type'], ['bigint', 'int', 'float'])) {
@@ -70,27 +70,32 @@ class ApiGeneratorController
             return NumericColumn::fromArray($columnArray);
         });
 
-        $validationRules = $this->generateValidationRulesForColumn($columnsCollection, 'store', $tableName);
-
-        $updateValidationRules = $this->generateValidationRulesForColumn($columnsCollection, 'update', $tableName);
-
-        $fillableColumns = $this->generateFillableColumns($columnsCollection);
-
-        $factoryColumns = $this->generateFactoryColumns($columnsCollection, $tableName);
-
-        $relations = collect($table['relations'])->map(function (array $relationArray): Relation {
-            return Relation::fromArray($relationArray);
-        });
-
         $table = new Table(
             $tableName,
             $columnsCollection,
-            $fillableColumns,
-            $factoryColumns,
-            $validationRules,
-            $updateValidationRules,
-            $relations,
         );
+
+        $validationRules = $this->generateValidationRulesForColumn($columnsCollection, 'store', $tableName);
+
+        $table->setValidationRules($validationRules);
+
+        $updateValidationRules = $this->generateValidationRulesForColumn($columnsCollection, 'update', $tableName);
+
+        $table->setUpdateValidationRules($updateValidationRules);
+
+        $fillableColumns = $this->generateFillableColumns($columnsCollection);
+
+        $table->setFillableColumns($fillableColumns);
+
+        $factoryColumns = $this->generateFactoryColumns($columnsCollection, $tableName);
+
+        $table->setFactoryColumns($factoryColumns);
+
+        $relations = collect($tableData['relations'])->map(function (array $relationArray): Relation {
+            return Relation::fromArray($relationArray);
+        });
+
+        $table->setRelations($relations);
 
         $modelName = $table->getModelName();
 
