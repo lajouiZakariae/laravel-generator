@@ -214,15 +214,15 @@ class ApiGeneratorController
     private function generateFillableColumns(Collection $columnsCollection): Collection
     {
         return $columnsCollection
-            ->filter(fn(PrimaryCloumn|EnumColumn|BoolColumn $column): bool => (!$column instanceof EnumColumn && !$column instanceof BoolColumn) ? !$column->isPrimary : true)
-            ->map(fn(PrimaryCloumn|EnumColumn|BoolColumn $column): string => $column->name);
+            ->filter(fn(Column $column): bool => $column instanceof PrimaryCloumn ? !$column->isPrimary : true)
+            ->map(fn(Column $column): string => $column->name);
     }
 
     private function generateFactoryColumns(Collection $columnsCollection, string $tableName): Collection
     {
         return $columnsCollection
-            ->filter(fn(PrimaryCloumn|EnumColumn|BoolColumn $column): bool => (!$column instanceof EnumColumn && !$column instanceof BoolColumn) ? !$column->isPrimary : true)
-            ->mapWithKeys(function (PrimaryCloumn|EnumColumn|BoolColumn $column) use ($tableName): array {
+            ->filter(fn(Column $column): bool => $column instanceof PrimaryCloumn ? !$column->isPrimary : true)
+            ->mapWithKeys(function (Column $column) use ($tableName): array {
                 if ($column instanceof StringColumn) {
                     if ($column->name === 'email') {
                         return [$column->name => 'fake()->email()'];
@@ -245,14 +245,15 @@ class ApiGeneratorController
                 }
 
                 if ($column instanceof EnumColumn) {
-                    return [$column->name => 'fake()->randomElement(' . Table::generateEnumName($tableName, $column->name) . 'Enum::values())'];
+                    return [$column->name => 'fake()->randomElement(' . Table::generateEnumName($tableName, $column->name) . '::values())'];
                 }
 
                 if ($column instanceof BoolColumn) {
                     return [$column->name => 'fake()->boolean()'];
                 }
 
-                return [$column->name => ''];
-            });
+                return [$column->name => null];
+            })
+            ->filter(fn(?string $value): bool => $value !== null);
     }
 }
