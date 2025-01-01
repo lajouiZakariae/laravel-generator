@@ -78,7 +78,7 @@ class RequestGeneratorRequest
             return File::get(resource_path('stubs/request.stub'));
         }
 
-        return File::get(__DIR__ . '/../stubs/request.stub');
+        return File::get(__DIR__ . '/../../stubs/request.stub');
     }
 
     /**

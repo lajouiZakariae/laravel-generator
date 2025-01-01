@@ -116,6 +116,6 @@ class ControllerGenerator
             return File::get(resource_path('stubs/controller.stub'));
         }
 
-        return File::get(__DIR__ . '/../stubs/controller.stub');
+        return File::get(__DIR__ . '/../../stubs/controller.stub');
     }
 }

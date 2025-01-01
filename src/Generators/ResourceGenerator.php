@@ -59,6 +59,6 @@ class ResourceGenerator
             return File::get(resource_path('stubs/resource.stub'));
         }
 
-        return File::get(__DIR__ . '/../stubs/resource.stub');
+        return File::get(__DIR__ . '/../../stubs/resource.stub');
     }
 }

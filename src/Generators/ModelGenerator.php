@@ -85,7 +85,7 @@ class ModelGenerator
             return File::get(resource_path('stubs/model.stub'));
         }
 
-        return File::get(__DIR__ . '/../stubs/model.stub');
+        return File::get(__DIR__ . '/../../stubs/model.stub');
     }
 
     /**

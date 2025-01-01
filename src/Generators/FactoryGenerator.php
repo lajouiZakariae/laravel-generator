@@ -77,7 +77,7 @@ class FactoryGenerator
             return File::get(resource_path('stubs/factory.stub'));
         }
 
-        return File::get(__DIR__ . '/../stubs/factory.stub');
+        return File::get(__DIR__ . '/../../stubs/factory.stub');
     }
 
     /**

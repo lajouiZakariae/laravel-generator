@@ -71,6 +71,6 @@ class PolicyGenerator
             return File::get(resource_path('stubs/policy.stub'));
         }
 
-        return File::get(__DIR__ . '/../stubs/policy.stub');
+        return File::get(__DIR__ . '/../../stubs/policy.stub');
     }
 }
