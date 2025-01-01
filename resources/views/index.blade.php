@@ -4,76 +4,83 @@
 
         <form class="form" @submit.prevent="post">
 
-            <button type="button" class="btn btn-sm btn-primary mb-2" @click="addEmptyColumn">
-                Add Column
-            </button>
+            <template v-for="table in tables" :key="table.id">
 
-            <table>
+                <div>
+                    <x-laravel-generator::input placeholder="Column Name" v-model="table.tableName" ::id="table.tableName" />
 
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Primary</th>
-                        <th>Nullable</th>
-                        <th>Foreign</th>
-                    </tr>
-                </thead>
+                    <button type="button" class="btn btn-sm btn-primary mb-2" :data-table-id="table.tableId"
+                        @click="addEmptyColumn">
+                        Add Column
+                    </button>
+                </div>
 
-                <tbody>
-                    <template v-for="column in columns" :key="column.id">
-                        <tr class="form-group--column d-flex" id="column.id">
-                            <td>
-                                <x-laravel-generator::input placeholder="Column Name" v-model="column.name"
-                                    ::id="column.name" />
-                            </td>
+                <table>
 
-                            <td>
-                                <x-laravel-generator::input placeholder="Type" v-model="column.type" />
-                            </td>
-
-                            <td>
-                                <x-laravel-generator::checkbox v-model="column.isPrimary" />
-                            </td>
-
-                            <td>
-                                <x-laravel-generator::checkbox v-model="column.isNullable" />
-                            </td>
-
-                            <td>
-                                <x-laravel-generator::checkbox v-model="column.isForeign" />
-                            </td>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Primary</th>
+                            <th>Nullable</th>
+                            <th>Foreign</th>
                         </tr>
+                    </thead>
 
-                        <tr v-show="column.isForeign">
-                            <td colspan="1"></td>
+                    <tbody>
+                        <template v-for="column in table.columns" :key="column.id">
+                            <tr class="form-group--column d-flex" id="column.id">
+                                <td>
+                                    <x-laravel-generator::input placeholder="Column Name" v-model="column.name"
+                                        ::id="column.name" />
+                                </td>
 
-                            <td>References</td>
+                                <td>
+                                    <x-laravel-generator::input placeholder="Type" v-model="column.type" />
+                                </td>
 
-                            <td>On</td>
-                        </tr>
+                                <td>
+                                    <x-laravel-generator::checkbox v-model="column.isPrimary" />
+                                </td>
 
-                        <tr v-show="column.isForeign && column.foreign">
-                            <td colspan="1"></td>
+                                <td>
+                                    <x-laravel-generator::checkbox v-model="column.isNullable" />
+                                </td>
 
-                            <td>
-                                <x-laravel-generator::input placeholder="Type" v-model="column.foreign.references" />
-                            </td>
+                                <td>
+                                    <x-laravel-generator::checkbox v-model="column.isForeign" />
+                                </td>
+                            </tr>
 
-                            <td>
-                                <x-laravel-generator::input placeholder="Type" v-model="column.foreign.on" />
-                            </td>
-                        </tr>
-                    </template>
-                </tbody>
-            </table>
+                            <tr v-show="column.isForeign">
+                                <td colspan="1"></td>
+
+                                <td>References</td>
+
+                                <td>On</td>
+                            </tr>
+
+                            <tr v-show="column.isForeign && column.foreign">
+                                <td colspan="1"></td>
+
+                                <td>
+                                    <x-laravel-generator::input placeholder="Type"
+                                        v-model="column.foreign.references" />
+                                </td>
+
+                                <td>
+                                    <x-laravel-generator::input placeholder="Type" v-model="column.foreign.on" />
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+
+            </template>
 
             <button type="submit" class="btn btn-primary">Submit</button>
 
         </form>
 
     </div>
-
-    <script src="https://unpkg.com/petite-vue"></script>
-    <script src="{{ asset('vendor/laravel-generator/index.js') }}" type="module"></script>
 </x-laravel-generator::base-layout>

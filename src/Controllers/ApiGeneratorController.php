@@ -45,7 +45,7 @@ class ApiGeneratorController
         /**
          * @var string $tableName
          */
-        $tableName = $tableData['table_name'];
+        $tableName = $tableData['tableName'];
 
         /**
          * @var Collection<int,PrimaryCloumn> $columnsCollection

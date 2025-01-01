@@ -1,144 +1,131 @@
 import { UUID } from 'https://unpkg.com/uuidjs@^5'
 
 PetiteVue.createApp({
-    columns: [
+    tables: [
         {
-            id: UUID.generate(),
-            name: 'id',
-            type: 'int',
-            isPrimary: true,
-            isNullable: false,
-            isForeign: false,
-            foreign: null,
+            tableId: UUID.generate(),
+            tableName: 'users',
+            columns: [
+                {
+                    id: UUID.generate(),
+                    name: 'id',
+                    unsigned: true,
+                    type: 'bigint',
+                    isPrimary: true,
+                    isNullable: false,
+                    isForeign: false,
+                    foreign: null,
+                },
+            ],
         },
         {
-            id: UUID.generate(),
-            name: 'name',
-            type: 'string',
-            isPrimary: false,
-            isNullable: false,
-            isForeign: false,
-            foreign: null,
-        },
-        {
-            id: UUID.generate(),
-            name: 'user_id',
-            type: 'string',
-            isPrimary: false,
-            isNullable: false,
-            isForeign: true,
-            foreign: {
-                references: 'id',
-                on: 'users',
-            },
-        },
-        {
-            id: UUID.generate(),
-            name: 'status',
-            type: "enum('Accepted','Banned','Pending')",
-            isPrimary: false,
-            isNullable: false,
-            isForeign: false,
-            foreign: null,
+            tableId: UUID.generate(),
+            tableName: 'bank_developers',
+            columns: [
+                {
+                    id: UUID.generate(),
+                    name: 'id',
+                    unsigned: true,
+                    type: 'bigint',
+                    isPrimary: true,
+                    isNullable: false,
+                    isForeign: false,
+                    foreign: null,
+                },
+                {
+                    id: UUID.generate(),
+                    name: 'zip_code',
+                    type: 'string(10)',
+                    isPrimary: false,
+                    isNullable: false,
+                    isForeign: false,
+                    foreign: null,
+                },
+                {
+                    id: UUID.generate(),
+                    name: 'status',
+                    type: "enum('Accepted','Banned','Pending')",
+                    isNullable: false,
+                },
+                {
+                    id: UUID.generate(),
+                    name: 'is_adult',
+                    type: 'bool',
+                    isNullable: false,
+                },
+                {
+                    id: UUID.generate(),
+                    name: 'user_id',
+                    type: 'bigint',
+                    isPrimary: false,
+                    isNullable: false,
+                    isForeign: true,
+                    foreign: {
+                        references: 'id',
+                        on: 'users',
+                    },
+                },
+            ],
         },
     ],
-    addEmptyColumn() {
-        this.columns.push({
+    successMessages: [],
+    errorMessages: [],
+    addEmptyColumn(ev) {
+        console.log(ev.target.dataset.tableId)
+
+        const table = this.tables.find(
+            table => table.tableId === ev.target.dataset.tableId
+        )
+
+        table.columns.push({
             id: UUID.generate(),
             name: '',
             type: '',
             isPrimary: false,
             isNullable: false,
+            isForeign: false,
+            foreign: null,
         })
     },
     async post() {
         try {
-            console.log(JSON.stringify(this.columns))
+            const preparedTables = prepareColumnsOfTables(this.tables)
 
-            const response = await fetch('/', {
+            const tables = resolveRelations(preparedTables)
+
+            const response = await fetch('/laravelgenerator', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(this.columns),
+                body: JSON.stringify(tables),
             })
 
             const responseBody = await response.json()
 
-            console.log(responseBody)
+            // this.successMessages = responseBody.messages;
+
+            // this.successMessages.forEach((message) => {
+            //     Toastify({
+            //         text: message,
+            //         duration: 3000,
+            //         destination: "https://github.com/apvarun/toastify-js",
+            //         newWindow: true,
+            //         close: true,
+            //         gravity: "bottom", // `top` or `bottom`
+            //         position: "right", // `left`, `center` or `right`
+            //         stopOnFocus: true, // Prevents dismissing of toast on hover
+            //         style: {
+            //             background:
+            //                 "linear-gradient(to right, #00b09b, #96c93d)",
+            //         },
+            //         onClick: function () {}, // Callback after click
+            //     }).showToast();
+            // });
         } catch (error) {}
     },
 }).mount('.form')
-
-const formData = [
-    {
-        table_name: 'users',
-        columns: [
-            {
-                id: '8ceaf7bc-dfe2-401a-b7f7-ed5e68d86679',
-                name: 'id',
-                unsigned: true,
-                type: 'bigint',
-                isPrimary: true,
-                isNullable: false,
-                isForeign: false,
-                foreign: null,
-            },
-        ],
-    },
-    {
-        table_name: 'bank_developers',
-        columns: [
-            {
-                id: '8ceaf7bc-dfe2-401a-b7f7-ed5e68d86679',
-                name: 'id',
-                unsigned: true,
-                type: 'bigint',
-                isPrimary: true,
-                isNullable: false,
-                isForeign: false,
-                foreign: null,
-            },
-            {
-                id: 'dea235dd-dcf7-46c7-a316-9d74aeb7a1a9',
-                name: 'zip_code',
-                type: 'string(10)',
-                isPrimary: false,
-                isNullable: false,
-                isForeign: false,
-                foreign: null,
-            },
-            {
-                id: '2440dd36-5488-4a48-9f6c-731c2a6d285f',
-                name: 'name',
-                type: 'string',
-                isPrimary: false,
-                isNullable: false,
-                isForeign: false,
-                foreign: null,
-            },
-            {
-                id: '2440dd36-5488-4a48-9f6c-731c2a6d285d',
-                name: 'user_id',
-                type: 'bigint',
-                isPrimary: false,
-                isNullable: false,
-                isForeign: true,
-                foreign: {
-                    references: 'id',
-                    on: 'users',
-                },
-            },
-        ],
-    },
-]
-
-const tableWithColumnsPrepared = prepareColumnsOfTables(formData)
-
-const tableWithRelationsResolved = resolveRelations(tableWithColumnsPrepared)
-
-console.log(JSON.stringify(tableWithRelationsResolved))
 
 /**
  * Prepare columns of the tables
@@ -179,6 +166,20 @@ function prepareColumnsOfTable(table) {
             return column
         }
 
+        if (type.startsWith('enum')) {
+            const enumValues = type
+                .replace('enum(', '')
+                .replace(')', '')
+                .replace(/'/g, '')
+                .split(',')
+
+            column.type = 'enum'
+
+            column.enumValues = enumValues
+
+            return column
+        }
+
         return column
     })
 
@@ -209,7 +210,7 @@ function resolveRelations(tables) {
                     foreignKey: column.name,
                     foreignTable: column.foreign.on,
                     localKey: column.foreign.references,
-                    localTable: table.table_name,
+                    localTable: table.tableName,
                 }
 
                 const hasManyRelation = {
@@ -217,14 +218,14 @@ function resolveRelations(tables) {
                     foreignKey: column.name,
                     foreignTable: column.foreign.on,
                     localKey: column.foreign.references,
-                    localTable: table.table_name,
+                    localTable: table.tableName,
                 }
 
-                if (!relations.hasOwnProperty(table.table_name)) {
-                    relations[table.table_name] = []
+                if (!relations.hasOwnProperty(table.tableName)) {
+                    relations[table.tableName] = []
                 }
 
-                relations[table.table_name].push(belongsToRelation)
+                relations[table.tableName].push(belongsToRelation)
 
                 if (!relations.hasOwnProperty(column.foreign.on)) {
                     relations[column.foreign.on] = []
@@ -238,7 +239,7 @@ function resolveRelations(tables) {
     }, {})
 
     tables.forEach(table => {
-        const tableRelations = relations[table.table_name]
+        const tableRelations = relations[table.tableName]
 
         if (tableRelations) {
             table.relations = tableRelations
