@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 
 class Table
 {
-    protected ?Collection $relations = null;
 
     public function __construct(
         public string $tableName,
@@ -25,6 +24,9 @@ class Table
 
         /** @var Collection<string,array<int,string>> */
         public Collection $updateValidationRules,
+
+        /** @var Collection<int,Relation> */
+        public ?Collection $relations = null,
     ) {
     }
 
@@ -87,29 +89,6 @@ class Table
     {
         return "{$this->getModelName()}Policy";
     }
-
-    public function getResolvedRelations(): Collection
-    {
-        if ($this->relations === null) {
-            $this->relations = collect();
-
-            foreach ($this->columns as $value) {
-                if (!$value->isForeign) {
-                    continue;
-                }
-
-                $this->relations->push(new Relation(
-                    $value->foreign->references,
-                    $value->foreign->on,
-                    $value->name,
-                    $this->tableName,
-                ));
-            }
-        }
-
-        return $this->relations;
-    }
-
 
     public static function fromArray(array $data)
     {

@@ -7,9 +7,9 @@ use Illuminate\Support\Collection;
 use LaravelGenerator\Classes\Column;
 use LaravelGenerator\Classes\EnumColumn;
 use LaravelGenerator\Classes\NumericColumn;
+use LaravelGenerator\Classes\Relation;
 use LaravelGenerator\Classes\StringColumn;
 use LaravelGenerator\Classes\Table;
-use LaravelGenerator\Exceptions\BusinessException;
 use LaravelGenerator\Generators\ModelGenerator;
 use LaravelGenerator\Generators\ControllerGenerator;
 use LaravelGenerator\Generators\FactoryGenerator;
@@ -31,59 +31,22 @@ class ApiGeneratorController
 
     public function __invoke(Request $request): array
     {
-        $requestBodyAsCollection = collect($request->columns);
+        return collect($request->all())->map(fn($table): array => $this->generateApiForTable($table))->toArray();
+    }
 
-        $preparedColumnsData = $requestBodyAsCollection->map(function (array $columnArray): array {
-            $typeFormat = $columnArray['type'];
+    public function generateApiForTable(array $table): array
+    {
+        /**
+         * @var string $tableName
+         */
+        $tableName = $table['table_name'];
 
-            $type = null;
+        /**
+         * @var Collection<int,Column> $columnsCollection
+         */
+        $columnsCollectionOfArrays = collect($table['columns']);
 
-            $stringMax = null;
-
-            $enumPossibleValues = null;
-
-            // TODO: REFACTOR THIS
-            if (str($typeFormat)->contains('(') && str($typeFormat)->contains(')')) {
-                $type = str($typeFormat)->before('(')->toString();
-
-                if (!in_array($type, ['string', 'int', 'enum'])) {
-                    throw new BusinessException('Unsupported Type');
-                }
-
-                $paramsAsString = str($typeFormat)->between('(', ')')->toString();
-
-                $paramsCollection = collect(explode(',', $paramsAsString));
-
-                if ($type === "enum") {
-                    if ($paramsCollection->isEmpty()) {
-                        throw new BusinessException('Enum type must have possible values');
-                    }
-
-                    $paramsCollection = $paramsCollection->map(function (string $str): string {
-                        return str($str)->trim("'")->toString();
-                    });
-                }
-
-                $stringMax = in_array($type, ['string', 'int']) && $paramsCollection->isNotEmpty()
-                    ? $paramsCollection->first()
-                    : null;
-
-                $enumPossibleValues = $type === "enum" ?
-                    $paramsCollection->toArray()
-                    : null;
-            } else {
-                $type = $typeFormat;
-            }
-
-            return [
-                ...$columnArray,
-                'type' => $type,
-                'stringMax' => $stringMax,
-                'possibleValues' => $enumPossibleValues,
-            ];
-        });
-
-        $columnsCollection = $preparedColumnsData->map(function (array $columnArray): EnumColumn|NumericColumn|StringColumn {
+        $columnsCollection = $columnsCollectionOfArrays->map(function (array $columnArray): EnumColumn|NumericColumn|StringColumn {
             if (in_array($columnArray['type'], ['bigint', 'int', 'float'])) {
                 return NumericColumn::fromArray($columnArray);
             }
@@ -107,13 +70,18 @@ class ApiGeneratorController
 
         $factoryColumns = $this->generateFactoryColumns($columnsCollection);
 
+        $relations = collect($table['relations'])->map(function (array $relationArray): Relation {
+            return Relation::fromArray($relationArray);
+        });
+
         $table = new Table(
-            $request->table_name,
+            $tableName,
             $columnsCollection,
             $fillableColumns,
             $factoryColumns,
             $validationRules,
             $updateValidationRules,
+            $relations,
         );
 
         $modelName = $table->getModelName();

@@ -5,6 +5,7 @@ namespace LaravelGenerator\Classes;
 class Relation
 {
     public function __construct(
+        public string $type,
         public string $foreignKey,
         public string $foreignTable,
         public string $localKey,
@@ -15,6 +16,7 @@ class Relation
     public static function fromArray(array $data): self
     {
         return new self(
+            $data["type"],
             $data["foreignKey"] ?? "",
             $data["foreignTable"] ?? "",
             $data["localKey"] ?? "",

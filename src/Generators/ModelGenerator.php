@@ -27,11 +27,11 @@ class ModelGenerator
             : "\n\tprotected \$fillable = [];";
 
         $relationsAsText = $table
-            ? $this->generateRelationsText($table->getResolvedRelations())
+            ? $this->generateRelationsText($table->relations)
             : "";
 
         $additionalImports = $table
-            ? $this->generateAdditionalImports($table->columns)
+            ? $this->generateAdditionalImports($table->relations)
             : "";
 
         $template = str()->replace(
@@ -119,20 +119,31 @@ class ModelGenerator
         $relationsColumnsText = "";
 
         $relations->each(function (Relation $relation) use (&$relationsColumnsText): void {
-            $singleRelationText = "\n\tpublic function " . $relation->getMethodName() . "(): BelongsTo\n\t{\n\t\treturn \$this->belongsTo(" . $relation->getModelName() . "::class);\n\t}";
+            $realtionMethodName = $relation->type === "belongs-to" ? "belongsTo" : "hasMany";
+
+            $returnType = $relation->type === "belongs-to" ? "BelongsTo" : "HasMany";
+
+            $methodName = $relation->getMethodName();
+
+            $singleRelationText = "\n\tpublic function $methodName(): $returnType\n\t{\n\t\treturn \$this->$realtionMethodName({$relation->getModelName()}::class);\n\t}";
+
             $relationsColumnsText .= $singleRelationText;
         });
 
         return $relationsColumnsText;
     }
 
-    protected function generateAdditionalImports(Collection $columns): string
+    /**
+     * @param \Illuminate\Support\Collection<int,Relation> $relations
+     * @return string
+     */
+    protected function generateAdditionalImports(Collection $relations): string
     {
-        $relationsCount = $columns
-            ->filter(fn(Column $column): bool => $column->isForeign)
-            ->count() > 0;
-
-        $imports = $relationsCount ? "use Illuminate\Database\Eloquent\Relations\BelongsTo;" : "";
+        $imports = $relations->reduce(function (string $additionalImports, Relation $relation): string {
+            return $additionalImports . ($relation->type === "belongs-to"
+                ? "use Illuminate\Database\Eloquent\Relations\BelongsTo;"
+                : "use Illuminate\Database\Eloquent\Relations\HasMany;");
+        }, "");
 
         return "$imports\n";
     }
