@@ -170,15 +170,17 @@ class ModelGenerator
      */
     protected function generateCastsText(Table $table): string
     {
-        if ($table->columns->isEmpty()) {
-            return "\n\t/**\n\t * Get the attributes that should be cast.\n\t *\n\t * @return array<string, string>\n\t */\n\tprotected function casts(): array \n\t{\n\t\treturn [];\n\t}";
-        }
-
-        $castsFunctionText = $table
+        $castableColumns = $table
             ->columns
             ->filter(function (Column|EnumColumn|BoolColumn $column): bool {
                 return $column instanceof EnumColumn || $column instanceof BoolColumn;
-            })
+            });
+
+        if ($castableColumns->isEmpty()) {
+            return "\n\t/**\n\t * Get the attributes that should be cast.\n\t *\n\t * @return array<string, string>\n\t */\n\tprotected function casts(): array \n\t{\n\t\treturn [];\n\t}";
+        }
+
+        $castsFunctionText = $castableColumns
             ->reduce(function (string $additionalImports, EnumColumn|BoolColumn $column) use ($table): string {
                 if ($column instanceof EnumColumn) {
                     $enumName = Table::generateEnumName($table->getName(), $column->name);
