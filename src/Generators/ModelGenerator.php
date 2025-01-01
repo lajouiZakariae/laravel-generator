@@ -5,7 +5,9 @@ namespace LaravelGenerator\Generators;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use LaravelGenerator\Classes\BoolColumn;
 use LaravelGenerator\Classes\Column;
+use LaravelGenerator\Classes\EnumColumn;
 use LaravelGenerator\Classes\Relation;
 use LaravelGenerator\Classes\Table;
 
@@ -30,8 +32,12 @@ class ModelGenerator
             ? $this->generateRelationsText($table->relations)
             : "";
 
+        $castsAsText = $table
+            ? $this->generateCastsText($table)
+            : "";
+
         $additionalImports = $table
-            ? $this->generateAdditionalImports($table->relations)
+            ? $this->generateAdditionalImports($table)
             : "";
 
         $template = str()->replace(
@@ -43,6 +49,7 @@ class ModelGenerator
                 '{{ fillables }}',
                 '{{ relationsAsText }}',
                 '{{ additionalImports }}',
+                '{{ castsAsText }}',
             ],
             [
                 $rootNamespace,
@@ -52,6 +59,7 @@ class ModelGenerator
                 $fillables,
                 $relationsAsText,
                 $additionalImports,
+                $castsAsText,
             ],
             $this->getStubFileContent()
         );
@@ -137,14 +145,58 @@ class ModelGenerator
      * @param \Illuminate\Support\Collection<int,Relation> $relations
      * @return string
      */
-    protected function generateAdditionalImports(Collection $relations): string
+    protected function generateAdditionalImports(Table $table): string
     {
-        $imports = $relations->reduce(function (string $additionalImports, Relation $relation): string {
+        $imports = $table->relations->reduce(function (string $additionalImports, Relation $relation): string {
             return $additionalImports . ($relation->type === "belongs-to"
                 ? "use Illuminate\Database\Eloquent\Relations\BelongsTo;"
                 : "use Illuminate\Database\Eloquent\Relations\HasMany;");
         }, "");
 
+        $enumImports = $table->columns
+            ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => $column instanceof EnumColumn)
+            ->map(fn(EnumColumn $column): string => Table::generateEnumName($table->getName(), $column->name))
+            ->unique()
+            ->map(fn(string $enumName): string => "use App\\Enums\\{$enumName};");
+
+        $imports .= $enumImports->isEmpty() ? "" : "\n" . $enumImports->implode("\n");
+
         return "$imports\n";
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection<int,Column|EnumColumn|BoolColumn> $columns
+     * @return string
+     */
+    protected function generateCastsText(Table $table): string
+    {
+        if ($table->columns->isEmpty()) {
+            return "\n\t/**\n\t * Get the attributes that should be cast.\n\t *\n\t * @return array<string, string>\n\t */\n\tprotected function casts(): array \n\t{\n\t\treturn [];\n\t}";
+        }
+
+        $castsFunctionText = $table
+            ->columns
+            ->filter(function (Column|EnumColumn|BoolColumn $column): bool {
+                return $column instanceof EnumColumn || $column instanceof BoolColumn;
+            })
+            ->reduce(function (string $additionalImports, EnumColumn|BoolColumn $column) use ($table): string {
+                if ($column instanceof EnumColumn) {
+                    $enumName = Table::generateEnumName($table->getName(), $column->name);
+
+                    $castLine = "\t\t\t'{$column->name}' => {$enumName}::class,";
+
+                    return "$additionalImports\n$castLine";
+                };
+
+                if ($column instanceof BoolColumn) {
+                    $castLine = "\t\t\t'{$column->name}' => 'boolean',";
+
+                    return "$additionalImports\n$castLine";
+                }
+
+                return $additionalImports;
+            }, "");
+
+        return "\n\t/**\n\t * Get the attributes that should be cast.\n\t *\n\t * @return array<string, string>\n\t */\n\tprotected function casts(): array \n\t{\n\t\treturn [$castsFunctionText\n\t\t];\n\t}";
     }
 }

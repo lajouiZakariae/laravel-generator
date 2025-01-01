@@ -128,7 +128,7 @@ class RequestGeneratorRequest
             ->filter(fn(Column|EnumColumn|BoolColumn $column): bool => $column instanceof EnumColumn)
             ->map(fn(EnumColumn $column): string => Table::generateEnumName($table->getName(), $column->name))
             ->unique()
-            ->map(fn(string $enumName): string => "use App\\Enums\\{$enumName}Enum;");
+            ->map(fn(string $enumName): string => "use App\\Enums\\{$enumName};");
 
         $imports .= $enumImports->isEmpty() ? "" : "\n" . $enumImports->implode("\n");
 

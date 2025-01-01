@@ -11,4 +11,5 @@ class {{ modelName }} extends Model
     use HasFactory;
     {{ fillables }}
     {{ relationsAsText }}
+    {{ castsAsText }}
 }
