@@ -21,19 +21,23 @@ class PolicyGenerator
 
         $policiesNamespace = "{$rootNamespace}Policies";
 
-        $modelClassName = "{$rootNamespace}Models\\{$modelName}";
+        $modelsImports = "use {$rootNamespace}Models\\{$modelName}";
+
+        if (!$modelName === "User") {
+            $modelsImports .= "\nuse {$rootNamespace}Models\\User";
+        }
 
         $template = str()->replace(
             [
                 '{{ policiesNamespace }}',
-                '{{ modelClassName }}',
+                '{{ modelsImports }}',
                 '{{ policyName }}',
                 '{{ modelName }}',
                 '{{ modelVariableName }}',
             ],
             [
                 $policiesNamespace,
-                $modelClassName,
+                $modelsImports,
                 $preparedPolicyName,
                 $modelName,
                 $modelVariableName,
