@@ -1,0 +1,12 @@
+<?php
+
+namespace {{ enumsNamespace }};
+
+use App\Traits\BaseEnum;
+
+enum {{ enumName }}: string
+{
+    use BaseEnum;
+
+    {{ enumValues }}
+}

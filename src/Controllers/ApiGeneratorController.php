@@ -4,12 +4,14 @@ namespace LaravelGenerator\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use LaravelGenerator\Classes\Column;
 use LaravelGenerator\Classes\EnumColumn;
 use LaravelGenerator\Classes\NumericColumn;
 use LaravelGenerator\Classes\Relation;
 use LaravelGenerator\Classes\StringColumn;
 use LaravelGenerator\Classes\Table;
+use LaravelGenerator\Generators\EnumGenerator;
 use LaravelGenerator\Generators\ModelGenerator;
 use LaravelGenerator\Generators\ControllerGenerator;
 use LaravelGenerator\Generators\FactoryGenerator;
@@ -26,6 +28,7 @@ class ApiGeneratorController
         protected ResourceGenerator $resourceGenerator,
         protected ControllerGenerator $controllerGenerator,
         protected RequestGeneratorRequest $requestGeneratorRequest,
+        protected EnumGenerator $enumGenerator,
     ) {
     }
 
@@ -62,13 +65,13 @@ class ApiGeneratorController
             return NumericColumn::fromArray($columnArray);
         });
 
-        $validationRules = $this->generateValidationRulesForColumn($columnsCollection);
+        $validationRules = $this->generateValidationRulesForColumn($columnsCollection, 'store', $tableName);
 
-        $updateValidationRules = $this->generateValidationRulesForColumn($columnsCollection, 'update');
+        $updateValidationRules = $this->generateValidationRulesForColumn($columnsCollection, 'update', $tableName);
 
         $fillableColumns = $this->generateFillableColumns($columnsCollection);
 
-        $factoryColumns = $this->generateFactoryColumns($columnsCollection);
+        $factoryColumns = $this->generateFactoryColumns($columnsCollection, $tableName);
 
         $relations = collect($table['relations'])->map(function (array $relationArray): Relation {
             return Relation::fromArray($relationArray);
@@ -123,14 +126,48 @@ class ApiGeneratorController
 
         $successMessages->push("Update Request created: {$outputPath}");
 
+        // generate enums for enum columns
+        $enumColumns = $table
+            ->columns
+            ->filter(fn(Column|EnumColumn $column): bool => $column instanceof EnumColumn);
+
+        if ($enumColumns->isNotEmpty()) {
+            $baseEnumStubFilePath = File::exists(resource_path('stubs/base-enum.stub')) ? resource_path('stubs/base-enum.stub') : __DIR__ . '/../../stubs/base-enum.stub';
+            $baseEnumOutputPath = app_path("Traits/BaseEnum.php");
+
+            if (!File::exists($baseEnumOutputPath)) {
+                File::makeDirectory(app_path("Traits"), 0755, true, true);
+                File::copy($baseEnumStubFilePath, $baseEnumOutputPath);
+            }
+        }
+
+        $enumColumns
+            ->each(function (EnumColumn $column) use ($table, $successMessages): void {
+                $outputPath = $this->enumGenerator->generate(Table::generateEnumName($table->getName(), $column->name), $column->enumValues);
+
+                $successMessages->push("Enum created: {$outputPath}");
+            });
+
         return $successMessages->toArray();
     }
 
-    private function generateValidationRulesForColumn(Collection $columnsCollection, string $action = "store"): Collection
+    private function generateValidationRulesForColumn(Collection $columnsCollection, string $action = "store", ?string $tableName = null): Collection
     {
         $validationRules = collect([]);
 
-        $columnsCollection->each(function (EnumColumn|NumericColumn|StringColumn $column) use ($validationRules, $action): void {
+        $columnsCollection->each(function (EnumColumn|NumericColumn|StringColumn $column) use ($validationRules, $action, $tableName): void {
+            if ($column instanceof EnumColumn) {
+                $columnValidationRules = [];
+
+                $columnValidationRules[] = $action === 'store' ? $column->isNullable ? 'nullable' : 'required' : 'nullable';
+
+                $enumName = Table::generateEnumName($tableName, $column->name);
+
+                $columnValidationRules[] = "Rule::enum({$enumName}Enum::class)";
+
+                $validationRules->put($column->name, $columnValidationRules);
+            }
+
             if (!$column instanceof EnumColumn && !$column->isPrimary) {
                 $columnValidationRules = [];
 
@@ -168,11 +205,11 @@ class ApiGeneratorController
             ->map(fn(Column|EnumColumn $column): string => $column->name);
     }
 
-    private function generateFactoryColumns(Collection $columnsCollection): Collection
+    private function generateFactoryColumns(Collection $columnsCollection, string $tableName): Collection
     {
         return $columnsCollection
-            ->filter(fn(Column|EnumColumn $column): bool => !$column instanceof EnumColumn && !$column->isPrimary)
-            ->mapWithKeys(function (Column $column): array {
+            ->filter(fn(Column|EnumColumn $column): bool => !$column instanceof EnumColumn ? !$column->isPrimary : true)
+            ->mapWithKeys(function (Column|EnumColumn $column) use ($tableName): array {
                 if ($column instanceof StringColumn) {
                     if ($column->name === 'email') {
                         return [$column->name => 'fake()->email()'];
@@ -185,12 +222,17 @@ class ApiGeneratorController
                     return [$column->name => 'fake()->text(' . ($column->stringMax ?: '') . ')'];
                 }
 
+
                 if ($column instanceof NumericColumn) {
                     if ($column->isForeign) {
                         return [$column->name => str($column->foreign->on)->singular()->camel()->ucfirst() . '::factory()'];
                     }
 
                     return [$column->name => 'fake()->randomNumber()'];
+                }
+
+                if ($column instanceof EnumColumn) {
+                    return [$column->name => 'fake()->randomElement(' . Table::generateEnumName($tableName, $column->name) . 'Enum::values())'];
                 }
 
                 return [$column->name => ''];

@@ -29,7 +29,7 @@ class RequestGeneratorRequest
             : "return [];";
 
         $additionalImports = $table
-            ? $this->generateAdditionalImports($table->columns)
+            ? $this->generateAdditionalImports($table)
             : "";
 
         $template = str()->replace(
@@ -111,9 +111,10 @@ class RequestGeneratorRequest
         return $rulesAsText;
     }
 
-    protected function generateAdditionalImports(Collection $columns): string
+    protected function generateAdditionalImports(Table $table): string
     {
-        $imports = $columns
+        $imports = $table
+            ->columns
             ->filter(fn(Column|EnumColumn $column): bool => $column instanceof Column)
             ->filter(fn(Column $column): bool => $column->isForeign)
             ->map(fn(Column $column): string => $column->foreign->on)
@@ -121,6 +122,14 @@ class RequestGeneratorRequest
             ->map(fn(string $tableName): string => str($tableName)->singular()->camel()->ucfirst())
             ->map(fn(string $tableName): string => "use App\\Models\\$tableName;")
             ->implode("\n");
+
+        $enumImports = $table->columns
+            ->filter(fn(Column|EnumColumn $column): bool => $column instanceof EnumColumn)
+            ->map(fn(EnumColumn $column): string => Table::generateEnumName($table->getName(), $column->name))
+            ->unique()
+            ->map(fn(string $enumName): string => "use App\\Enums\\{$enumName}Enum;");
+
+        $imports .= $enumImports->isEmpty() ? "" : "\n" . $enumImports->implode("\n");
 
         return "$imports\n";
     }

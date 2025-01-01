@@ -90,7 +90,11 @@ class Table
         return "{$this->getModelName()}Policy";
     }
 
-    public static function fromArray(array $data)
+    public static function generateEnumName(string $tableName, string $columnName): string
     {
+        $tableModelName = str($tableName)->singular()->camel()->ucfirst()->toString();
+        $enumColumnCamelCaseName = str($columnName)->camel()->ucfirst()->toString();
+
+        return "$tableModelName$enumColumnCamelCaseName";
     }
 }
