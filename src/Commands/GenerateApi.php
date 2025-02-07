@@ -5,6 +5,7 @@ namespace LaravelGenerator\Commands;
 use Illuminate\Console\Command;
 use LaravelGenerator\Generators\ControllerGenerator;
 use LaravelGenerator\Generators\FactoryGenerator;
+use LaravelGenerator\Generators\MigrationGenerator;
 use LaravelGenerator\Generators\ModelGenerator;
 use LaravelGenerator\Generators\PolicyGenerator;
 use LaravelGenerator\Generators\ResourceGenerator;
@@ -31,6 +32,7 @@ class GenerateApi extends Command
         protected PolicyGenerator $policyGenerator,
         protected ResourceGenerator $resourceGenerator,
         protected ControllerGenerator $controllerGenerator,
+        protected MigrationGenerator   $migrationGenerator,
     ) {
         parent::__construct();
     }
@@ -61,5 +63,9 @@ class GenerateApi extends Command
         $outputPath = $this->controllerGenerator->generate($modelName);
 
         $this->info("Controller created: {$outputPath}");
+
+        $this->migrationGenerator->generate($modelName);
+
+        $this->info("Migration created");
     }
 }

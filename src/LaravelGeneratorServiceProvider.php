@@ -7,6 +7,7 @@ use LaravelGenerator\Commands\GenerareCustomFactory;
 use LaravelGenerator\Commands\GenerareCustomModel;
 use LaravelGenerator\Commands\GenerareCustomPolicy;
 use LaravelGenerator\Commands\GenerateApi;
+use LaravelGenerator\Commands\GenerateCustomMigration;
 use LaravelGenerator\Commands\GenerateCustomResource;
 use LaravelGenerator\Commands\GenerateCustomController;
 
@@ -31,6 +32,7 @@ class LaravelGeneratorServiceProvider extends ServiceProvider
             GenerareCustomModel::class,
             GenerareCustomFactory::class,
             GenerareCustomPolicy::class,
+            GenerateCustomMigration::class,
         ]);
     }
 }
