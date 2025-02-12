@@ -11,6 +11,7 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Validation\Rule;
 
 /**
  * @tags {{ modelName }}
@@ -26,7 +27,7 @@ class {{ controllerName }}
 
         $request->validate([
             'sort_by' => ['nullable', 'string'],
-            'order' => ['nullable', 'string', 'in:asc,desc'],
+            'order' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
             'paginate' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
