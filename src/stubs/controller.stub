@@ -86,6 +86,10 @@ class {{ controllerName }}
 
         {{ modelVariableName }} = {{ modelName }}::findOrFail($id);
 
+        if (!{{ modelVariableName }}) {
+            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+        }
+
         {{ modelVariableName }}->fill($validatedPayload);
 
         if (!{{ modelVariableName }}->save()) {
