@@ -27,7 +27,7 @@ class ControllerGenerator
 
         $subNamespace = str($namespacePath)->isNotEmpty() ? "\\{$namespacePath}" : '';
 
-        $controllerNamespace = "{$rootNamespace}Http\\Controllers{$subNamespace}\\{$preparedControllerName}";
+        $controllerNamespace = "{$rootNamespace}Http\\Controllers{$subNamespace}";
 
         $modelName = str($preparedControllerName)->replaceLast('Controller', '');
 
