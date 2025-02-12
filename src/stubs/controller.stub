@@ -53,7 +53,7 @@ class {{ controllerName }}
         {{ modelVariableName }} = new {{ modelName }}($validatedPayload);
 
         if (!{{ modelVariableName }}->save()) {
-            throw new BadRequestHttpException(__(':resource Could not be created', ['resource' => __('{{ modelName }}')]));
+            throw new BadRequestHttpException(__(':resource could not be updated', ['resource' => __('{{ modelName }}')]));
         }
 
         return {{ modelName }}Resource::make({{ modelVariableName }});
