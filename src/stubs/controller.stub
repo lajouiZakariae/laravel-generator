@@ -33,6 +33,8 @@ class {{ controllerName }}
 
         $query = {{ modelName }}::query();
 
+        $query->orderBy($request->sort_by ?? 'created_at', $request->order ?? 'desc');
+
         {{ modelPluralVariableName }} = $request->boolean('paginate', true)
             ? $query->paginate($request->per_page ?? 15)
             : $query->get();
