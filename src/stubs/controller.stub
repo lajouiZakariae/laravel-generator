@@ -53,7 +53,7 @@ class {{ controllerName }}
         {{ modelVariableName }} = new {{ modelName }}($validatedPayload);
 
         if (!{{ modelVariableName }}->save()) {
-            throw new BadRequestHttpException(__(':resource could not be updated', ['resource' => __('{{ modelName }}')]));
+            throw new BadRequestHttpException(__('exceptions.resource_could_not_be_created', ['resource' => __('{{ modelName }}')]));
         }
 
         return {{ modelName }}Resource::make({{ modelVariableName }});
@@ -69,7 +69,7 @@ class {{ controllerName }}
         {{ modelVariableName }} = {{ modelName }}::find($id);
 
         if (!{{ modelVariableName }}) {
-            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+            throw new NotFoundHttpException(__('exceptions.resource_not_found', ['resource' => __('{{ modelName }}')]));
         }
 
         return new {{ modelName }}Resource({{ modelVariableName }});
@@ -84,16 +84,16 @@ class {{ controllerName }}
 
         $validatedPayload = $request->validate([]);
 
-        {{ modelVariableName }} = {{ modelName }}::findOrFail($id);
+        {{ modelVariableName }} = {{ modelName }}::find($id);
 
         if (!{{ modelVariableName }}) {
-            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+            throw new NotFoundHttpException(__('exceptions.resource_not_found', ['resource' => __('{{ modelName }}')]));
         }
 
         {{ modelVariableName }}->fill($validatedPayload);
 
         if (!{{ modelVariableName }}->save()) {
-            throw new BadRequestHttpException(__(':resource Could not be updated', ['resource' => __('{{ modelName }}')]));
+            throw new BadRequestHttpException(__('exceptions.resource_could_not_be_updated', ['resource' => __('{{ modelName }}')]));
         }
 
         return {{ modelName }}Resource::make({{ modelVariableName }});
@@ -109,7 +109,7 @@ class {{ controllerName }}
         $affectedRowsCount = {{ modelName }}::destroy($id);
 
         if ($affectedRowsCount === 0) {
-            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+            throw new NotFoundHttpException(__('exceptions.resource_not_found', ['resource' => __('{{ modelName }}')]));
         }
 
         return response()->noContent();
@@ -130,7 +130,7 @@ class {{ controllerName }}
         $affectedRowsCount = {{ modelName }}::destroy($request->ids);
 
         if ($affectedRowsCount === 0) {
-            throw new NotFoundHttpException(__(':resource not found', ['resource' => __('{{ modelName }}')]));
+            throw new NotFoundHttpException(__('exceptions.resource_not_found', ['resource' => __('{{ modelName }}')]));
         }
 
         return response()->noContent();
